@@ -1,0 +1,41 @@
+{
+	"id" : "dom4_piscine",
+	"name" : "Dom4 Piscine",
+	"description" : {
+		"fr_FR": "Gestion de la piscine: génération Dom4"
+	},
+	"licence" : "AGPL",
+	"author" : "Lelas33",
+	"require" : "4.0",
+	"category" : "wellness",
+	"hasDependency" : false,
+	"hasOwnDeamon" : false,
+	"maxDependancyInstallTime" : 0,
+	"changelog" : "https://jeedom.github.io/plugin-template/#language#/changelog",
+	"documentation" : "https://jeedom.github.io/plugin-template/#language#/",
+	"link" : {
+		"forum":"Lien vers le forum",
+		"video" : "Lien vers une video"
+	},
+	"language": [
+		"fr_FR",
+		"en_US",
+		"es_ES",
+		"de_DE",
+		"ru_RU",
+		"id_ID",
+		"it_IT",
+		"ja_JP",
+		"pt_PT"
+	],
+	"compatibility": [
+		"miniplus",
+		"smart",
+		"rpi",
+		"docker",
+		"diy",
+		"mobile",
+		"v4",
+		"atlas"
+	]
+}
