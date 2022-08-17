@@ -34,6 +34,12 @@ $(".listCmdInfoOther").on('click', function () {
     el.closest('.input-group').find('input').value(result.human);
   });
 });
+$(".listCmdInfoBinary").on('click', function () {
+  var el = $(this);
+  jeedom.cmd.getSelectModal({cmd: {type: 'info',subType : 'binary'}}, function (result) {
+    el.closest('.input-group').find('input').value(result.human);
+  });
+});
 
 /* Permet la réorganisation des commandes dans l'équipement */
 $("#table_cmd").sortable({

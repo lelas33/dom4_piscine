@@ -24,6 +24,8 @@ define("FILT_ARRET",  0);
 define("FILT_MANUEL", 1);
 define("FILT_AUTO",   2);
 define("FILT_HIVER",  3);
+define("FILT_FORCE",  4);
+define("FILT_SFORCE", 5);
 
 // Constantes pour les modes de pompe a chaleur
 define("PAC_ARRET",  0);
@@ -45,6 +47,8 @@ define("PAC_TEMPE_HYSTERESIS",        0.5);    // Hysteresis temperature PAC
 
 // Constantes de fonctionnement de la Pompe a chaleur
 define("PAC_MAX_DURATION_DAY",        840);    // Duree maximale de fonctionnement de la PAC sur la journee:14h (en mn)
+
+define("POOL_LOG_FILE", "/../../data/pool_log.txt");
 
 
 class dom4_piscine extends eqLogic {
@@ -82,17 +86,24 @@ class dom4_piscine extends eqLogic {
 
     private function getListeDefaultCommandes()
     {
-      return array( // Commandes: modes filtration
+      return array(
+        // Commandes: modes filtration
         "modef_arret"     => array('Flt:Arrêt',               'action', 'other',    "", 0, 1, "GENERIC_ACTION", 'default', 'default'),
         "modef_manuel"    => array('Flt:Manuel',              'action', 'other',    "", 0, 1, "GENERIC_ACTION", 'default', 'default'),
         "modef_auto"      => array('Flt:Automatique',         'action', 'other',    "", 0, 1, "GENERIC_ACTION", 'default', 'default'),
         "modef_hiver"     => array('Flt:Hiver',               'action', 'other',    "", 0, 1, "GENERIC_ACTION", 'default', 'default'),
+        "modef_force"     => array('Flt:Forcé',               'action', 'other',    "", 0, 1, "GENERIC_ACTION", 'default', 'default'),
+        "modef_sforce"    => array('Sel:Forcé',               'action', 'other',    "", 0, 1, "GENERIC_ACTION", 'default', 'default'),
         // Commandes: modes PAC                                                     
         "modep_arret"     => array('PAC:Arrêt',               'action', 'other',    "", 0, 1, "GENERIC_ACTION", 'default', 'default'),
         "modep_tfilt"     => array('PAC:Temps filtration',    'action', 'other',    "", 0, 1, "GENERIC_ACTION", 'default', 'default'),
         "modep_teten"     => array('PAC:Temps étendu',        'action', 'other',    "", 0, 1, "GENERIC_ACTION", 'default', 'default'),
         "modep_manuel"    => array('PAC:Manuel',              'action', 'other',    "", 0, 1, "GENERIC_ACTION", 'default', 'default'),
         "pac_tconsigne"   => array('Température consigne',    'action', 'slider',   "", 0, 1, "GENERIC_ACTION", 'default', 'default'),
+        // Commande: Eclairage piscine
+        "ecl_bassin_on"   => array('Ecl: On',                 'action', 'other',    "", 0, 1, "GENERIC_ACTION", 'default', 'default'),
+        "ecl_bassin_off"  => array('Ecl: Off',                'action', 'other',    "", 0, 1, "GENERIC_ACTION", 'default', 'default'),
+        
         // Infos: Etats & parametres                                                
         "modef_value"     => array('Mode filtration',         'info',  'numeric',   "", 0, 1, "GENERIC_INFO", 'core::badge', 'core::badge'),
         "modep_value"     => array('Mode pompe à chaleur',    'info',  'numeric',   "", 0, 1, "GENERIC_INFO", 'core::badge', 'core::badge'),
@@ -103,7 +114,15 @@ class dom4_piscine extends eqLogic {
         "st_dureef"       => array('Durée Filtration',        'info',  'numeric', "mn", 0, 1, "GENERIC_INFO", 'core::badge', 'core::badge'),
         "st_durees"       => array('Durée Sel',               'info',  'numeric', "mn", 0, 1, "GENERIC_INFO", 'core::badge', 'core::badge'),
         "tconsigne_val"   => array('Valeur T.consigne PAC',   'info',  'numeric', "°C", 0, 1, "GENERIC_INFO", 'core::badge', 'core::badge'),
-        "ptemp_pisc"      => array('Temp. Piscine',           'info',  'numeric', "°C", 0, 1, "GENERIC_INFO", 'core::badge', 'core::badge')
+        "ptemp_pisc"      => array('Temp. Piscine',           'info',  'numeric', "°C", 0, 1, "GENERIC_INFO", 'core::badge', 'core::badge'),
+        "ecl_bassin_sts"  => array('Etat éclairage Bassin',   'info',  'binary',    "", 1, 1, "GENERIC_INFO", 'core::Light', 'core::Light'),
+        // Infos: Statistiques
+        "stat_fil_jour"   => array('Stat. filtration',        'info',  'numeric', "mn", 1, 1, "GENERIC_INFO", 'core::badge', 'core::badge'),
+        "stat_sel_jour"   => array('Stat. sel',               'info',  'numeric', "mn", 1, 1, "GENERIC_INFO", 'core::badge', 'core::badge'),
+        "stat_pac_jour"   => array('Stat. pompe à chaleur',   'info',  'numeric', "mn", 1, 1, "GENERIC_INFO", 'core::badge', 'core::badge'),
+        "stat_ecl_jour"   => array('Stat. éclairage',         'info',  'numeric', "mn", 1, 1, "GENERIC_INFO", 'core::badge', 'core::badge'),
+        // Autres Infos
+        "misc_links"      => array('Liens widgets',           'info',  'string',    "", 0, 1, "GENERIC_INFO", 'core::badge', 'core::badge')
       );
     }
 
@@ -176,8 +195,8 @@ class dom4_piscine extends eqLogic {
           // $cmd->setIsHistorized($hist);
           // $cmd->setIsVisible($visible);
           $cmd->setDisplay('generic_type', $generic_type);
-          // $cmd->setTemplate('dashboard', $template_dashboard);
-          // $cmd->setTemplate('mobile', $template_mobile);
+          $cmd->setTemplate('dashboard', $template_dashboard);
+          $cmd->setTemplate('mobile', $template_mobile);
         }
       }
 
@@ -246,7 +265,7 @@ class dom4_piscine extends eqLogic {
       $cur_hm = intval($heure*60)+intval($minute);
 
       // Capture de la température, et recopie dans le champ info:ptemp_pisc
-      $tempe_cmdname = str_replace('#', '', $eql->getConfiguration('EAU_temperature'));
+      $tempe_cmdname = str_replace('#', '', $eql->getConfiguration('water_tempe'));
       $tempe_cmd  = cmd::byId($tempe_cmdname);
       if (!is_object($tempe_cmd)) {
         throw new Exception(__('Impossible de trouver la commande Temperature piscine', __FILE__));
@@ -257,6 +276,9 @@ class dom4_piscine extends eqLogic {
         $cmd->event($tempe_eau);
       }
       $tempe_abri = 10.0;  // TODO : capturer temperature abri
+      // Infos de statut de la filtration
+      $info_duree_filt = $eql->getCmd(null, 'st_dureef');
+      $info_duree_sel  = $eql->getCmd(null, 'st_durees');
       // Capture des commandes de pilotage de la piscine (pompe filtration, sel, pac)
       $cmd_flt_on_name  = str_replace('#', '', $eql->getConfiguration('Filtration_on'));
       $cmd_flt_off_name = str_replace('#', '', $eql->getConfiguration('Filtration_off'));
@@ -283,7 +305,8 @@ class dom4_piscine extends eqLogic {
       if ($filtration_state == '')
         $filtration_state = 0;
       $param_filtr = $cmd_filtr_state->getConfiguration('param_filtration');
-      if ($param_filtr == "") {
+      if (count($param_filtr) < 8) {
+        $param_filtr = [];
         $param_filtr["flag_ag_onoff"]   = 0;
         $param_filtr["flag_pac_tempe_rising"] = 1;
         $param_filtr["filt_start_time"] = 0;
@@ -292,6 +315,7 @@ class dom4_piscine extends eqLogic {
         $param_filtr["cptcycle_sel"]    = 0;
         $param_filtr["psel_end_pause"]  = 0;
         $param_filtr["pac_start_time"]  = 0;
+        log::add('dom4_piscine','debug','Gestion filtration: Init variable param_filtr');
       }
       
       $cmd = $eql->getCmd(null, 'modef_value');
@@ -325,26 +349,37 @@ class dom4_piscine extends eqLogic {
         $pmp_filt_am = 0;
         $sel_am      = 0;
       }
+      else if ($mode_filtration == FILT_FORCE) {
+        $pmp_filt_am = 1;
+        $sel_am      = 0;
+      }
+      else if ($mode_filtration == FILT_SFORCE) {
+        $pmp_filt_am = 1;
+        $sel_am      = 1;
+      }
       else if (($mode_filtration == FILT_MANUEL) || ($mode_filtration == FILT_AUTO)) {
         // Demarrage du cycle a 3h00 
         if (($filtration_state == 0) || (($heure == 3) && ($minute == 0))) {
           // Initialisation du cycle quotidien a 3h00
           // pause_filt = 0;  // fin de pause au cas ou elle serait active par oubli
           $param_filtr["filt_start_time"] = FILT_POMPE_START_TIME;
-          $duree_filtration = $eql->pis_calcule_duree_filtration ($tempe_eau);
           if ($mode_filtration == FILT_MANUEL) {
             $param_filtr["filt_end_time"] = $param_filtr["filt_start_time"] + FILT_POMPE_DUREE_MANUEL;
             if (($mode_pac == PAC_TETEN) && (PAC_MAX_DURATION_DAY > FILT_POMPE_DUREE_MANUEL)) {
               $param_filtr["filt_end_time"] = $param_filtr["filt_start_time"] + PAC_MAX_DURATION_DAY;
             }
+            $info_duree_filt->event(FILT_POMPE_DUREE_MANUEL);       // Duree de filtration MANUELLE
           }
           else if ($mode_filtration == FILT_AUTO) {
+            $duree_filtration = $eql->pis_calcule_duree_filtration ($tempe_eau);
             $param_filtr["filt_end_time"] = $param_filtr["filt_start_time"] + $duree_filtration;
             if (($mode_pac == PAC_TETEN) && (PAC_MAX_DURATION_DAY > $duree_filtration)) {
               $param_filtr["filt_end_time"] = $param_filtr["filt_start_time"] + PAC_MAX_DURATION_DAY;
             }
+            $info_duree_filt->event($duree_filtration);             // Duree de filtration AUTO
           }
           $param_filtr["sel_end_time"] = $param_filtr["filt_start_time"] + FILT_DUREE_SEL;
+          $info_duree_sel->event(FILT_DUREE_SEL);                 // Duree de traitement sel
           $pmp_filt_am = 0;
           $sel_am      = 0;
           $filtration_state = 1;
@@ -356,6 +391,7 @@ class dom4_piscine extends eqLogic {
             $sel_am      = 1;   //demarre sel
             $param_filtr["cptcycle_sel"] = 1;   // Premier cycle de sel
             $filtration_state = 2;
+            $duree_filtration = $info_duree_filt->execCmd();
             $tmp = (($mode_filtration == FILT_MANUEL) ? FILT_POMPE_DUREE_MANUEL:$duree_filtration)/60.0;
             log::add('dom4_piscine','info','Demarrage Pompe pour duree:'.$tmp.'h (tempe:'.$tempe_eau.'°C, mode:'.$mode_filtration.')');
             $tmp = FILT_DUREE_SEL/60.0;
@@ -395,6 +431,7 @@ class dom4_piscine extends eqLogic {
           }
         else if ($filtration_state == 4) {
           //  4 : Cycle filtrage en cours + Sel termine
+          $pmp_filt_am = 1;   //maintient la pompe
           // Fin pompe de filtration
           if ($cur_hm >= $param_filtr["filt_end_time"]) {
             $pmp_filt_am = 0; //Stoppe pompe filtration
@@ -414,18 +451,24 @@ class dom4_piscine extends eqLogic {
           $param_filtr["filt_end_time"] = $param_filtr["filt_start_time"] + FILT_HIV_DUREE1;
           $filtration_state = 10;
           $param_filtr["flag_ag_onoff"] = 0;
+          // log::add('dom4_piscine','debug','Step next => '.$filtration_state.', temps = '.$cur_hm.', filt_start_time = '.$param_filtr["filt_start_time"]);
+          $info_duree_filt->event(FILT_HIV_DUREE1 + FILT_HIV_DUREE2);       // Duree des 2 sequences de filtration
+          $info_duree_sel->event(0);                                        // Pas de traitement sel en mode Hiver
           }
 
         else if ($filtration_state == 10) {
           // Attente heure de depart du cycle filtration : premiere tranche
+          // log::add('dom4_piscine','debug','Step current => '.$filtration_state.', temps = '.$cur_hm.', filt_start_time = '.$param_filtr["filt_start_time"]);
           if ($cur_hm >= $param_filtr["filt_start_time"]) {
             $pmp_filt_am = 1; //demarre pompe filtration
             $filtration_state = 11;
             $tmp = FILT_HIV_DUREE1/60.0;
             log::add('dom4_piscine','info','Demarrage Pompe pour duree:'.$tmp.'h (tempe:'.$tempe_eau.'°C, mode:'.$mode_filtration.')');
+            // log::add('dom4_piscine','debug','Step next => '.$filtration_state.', temps = '.$cur_hm.', filt_start_time = '.$param_filtr["filt_start_time"]);
             }
           }
         else if ($filtration_state == 11) {
+          // log::add('dom4_piscine','debug','Step current => '.$filtration_state.', temps = '.$cur_hm.', filt_start_time = '.$param_filtr["filt_start_time"]);
           $pmp_filt_am = 1;   //maintient la pompe
           if ($cur_hm >= $param_filtr["filt_end_time"]) {
             $pmp_filt_am = 0; // Stoppe pompe filtration
@@ -435,6 +478,7 @@ class dom4_piscine extends eqLogic {
             $param_filtr["filt_end_time"] = $param_filtr["filt_start_time"] + FILT_HIV_DUREE2;
             $filtration_state = 12;
             $param_filtr["flag_ag_onoff"] = 0;
+            // log::add('dom4_piscine','debug','Step next => '.$filtration_state.', temps = '.$cur_hm.', filt_start_time = '.$param_filtr["filt_start_time"]);
             }
           }
         else if ($filtration_state == 12) {
@@ -496,24 +540,21 @@ class dom4_piscine extends eqLogic {
           $pac_am        = 0;
           $param_filtr["flag_pac_tempe_rising"] = 1;
           }
-        else if ($filtration_state == 2) {
+        else if (($filtration_state == 2) || ($filtration_state == 3) || ($filtration_state == 4)) {
           // demarrage PAC 60 s apres la pompe de filtration
-          if ($mode_pac != PAC_ARRET) {
-            if (($cur_hm >= ($param_filtr["filt_start_time"] + 1)) && ($pac_enabled == 0)) {
+          if ($cur_hm >= ($param_filtr["filt_start_time"] + 1)) {
+            $pac_enabled = 1;
+            if ($cur_hm == ($param_filtr["filt_start_time"] + 1)) {
+              // debut du cycle de chauffage
               $param_filtr["pac_start_time"] = $cur_hm;
-              $pac_enabled = 1;  // debut du cycle de chauffage
               log::add('dom4_piscine','info','Demarrage PAC');
               }
             }
-          }
-        else if ($filtration_state == 4) {
-          //  4 : Cycle filtrage en cours + Sel termine
-          // fin PAC 60 s avant la pompe de filtration
-          if (($cur_hm >= ($param_filtr["filt_end_time"] - 1)) && ($pac_enabled == 1)) {
+          //  4 : Cycle filtrage en cours + Sel termine => fin PAC 60 s avant la pompe de filtration
+          else if ($cur_hm >= ($param_filtr["filt_end_time"] - 1)) {
             $pac_enabled = 0;  // fin du cycle de chauffage
             log::add('dom4_piscine','info','Arret PAC');
             }
-          // Fin pompe de filtration
           }
         }
       else if ($mode_filtration == FILT_HIVER) {
@@ -523,7 +564,7 @@ class dom4_piscine extends eqLogic {
       }
       // Asservissement de la temperature dans les plages de fonctionnement
       if ($pac_enabled == 1) {
-        if       (($tempe_eau < $tempe_consigne_pac) && ($param_filtr["flag_pac_tempe_rising"] == 1)) {
+        if      (($tempe_eau < $tempe_consigne_pac) && ($param_filtr["flag_pac_tempe_rising"] == 1)) {
           $pac_am = 1;
         }
         else if (($tempe_eau >= $tempe_consigne_pac) && ($param_filtr["flag_pac_tempe_rising"] == 1)) {
@@ -559,7 +600,55 @@ class dom4_piscine extends eqLogic {
       if (($pac_enabled == 1) && ($pac_am == 1)) $cmd_pac_on->execCmd();  else $cmd_pac_off->execCmd();
 
       // }
-        
+
+
+      // -----------------------------
+      // Statistiques journalieres
+      // -----------------------------
+      // Filtration / sel / P.A.C / Eclairage
+      $cmd_stat_fil = $eql->getCmd(null, 'stat_fil_jour');
+      $cmd_stat_sel = $eql->getCmd(null, 'stat_sel_jour');
+      $cmd_stat_pac = $eql->getCmd(null, 'stat_pac_jour');
+      $cmd_stat_ecl = $eql->getCmd(null, 'stat_ecl_jour');
+      $cmd_ecl_sts  = $eql->getCmd(null, 'ecl_bassin_sts');
+
+      if ((is_object($cmd_stat_fil)) && (is_object($cmd_stat_sel)) && (is_object($cmd_stat_pac)) && (is_object($cmd_stat_ecl)) && (is_object($cmd_ecl_sts))) {
+        if ($cur_hm == 1439) {  // 1439
+          // Enregistrement des stat. du jour dans un fichier a minuit (- 1 mn)
+          $date_str = mktime(0, 0, 0, date("m"), date("d"), date("Y"));  // Timestamp du debut de la journee
+          $stat_fil = $cmd_stat_fil->execCmd();
+          $stat_sel = $cmd_stat_sel->execCmd();
+          $stat_pac = $cmd_stat_pac->execCmd();
+          $stat_ecl = $cmd_stat_ecl->execCmd();
+          $log_fn = dirname(__FILE__).POOL_LOG_FILE;
+          $pool_log = $date_str.",".$stat_fil.",".$stat_sel.",".$stat_pac.",".$stat_ecl."\n";
+          file_put_contents($log_fn, $pool_log, FILE_APPEND | LOCK_EX);
+          // Puis reset des stats
+          $cmd_stat_fil->event(0);
+          $cmd_stat_sel->event(0);
+          $cmd_stat_pac->event(0);
+          $cmd_stat_ecl->event(0);
+        }
+        else {
+          if ($pmp_filt_am == 1) {
+            $stat_fil = $cmd_stat_fil->execCmd() + 1;
+            $cmd_stat_fil->event($stat_fil);
+          }
+          if ($sel_am == 1) {
+            $stat_sel = $cmd_stat_sel->execCmd() + 1;
+            $cmd_stat_sel->event($stat_sel);
+          }
+          if (($pac_enabled == 1) && ($pac_am == 1) && ($pmp_filt_am == 1)) {
+            $stat_pac = $cmd_stat_pac->execCmd() + 1;
+            $cmd_stat_pac->event($stat_pac);
+          }
+          if ($cmd_ecl_sts->execCmd() == 1) {
+            $stat_ecl = $cmd_stat_ecl->execCmd() + 1;
+            $cmd_stat_ecl->event($stat_ecl);
+          }
+        }
+      }
+
       // Sauvegarde des variables statiques
       // ----------------------------------
       $cmd_filtr_state->event($filtration_state);
@@ -619,8 +708,30 @@ class dom4_piscine extends eqLogic {
       }
     }
 
-
-
+   // =================================================
+   // Fonction de gestion de l'eclairage piscine
+   // =================================================
+    public function set_eclairage($new_ecl) {
+      
+      if ($new_ecl == 1) {
+        $cmd_ecl_on_name  = str_replace('#', '', $this->getConfiguration('ECL_on'));
+        $cmd_ecl_on  = cmd::byId($cmd_ecl_on_name );
+        if (is_object($cmd_ecl_on)) {
+          $cmd_ecl_on->execCmd();
+        }
+      }
+      else {
+        $cmd_ecl_off_name  = str_replace('#', '', $this->getConfiguration('ECL_off'));
+        $cmd_ecl_off  = cmd::byId($cmd_ecl_off_name );
+        if (is_object($cmd_ecl_off)) {
+          $cmd_ecl_off->execCmd();
+        }
+      }
+      $cmd = $this->getCmd(null, 'ecl_bassin_sts');
+      if (is_object($cmd)) {
+        $cmd->event($new_ecl);
+      }
+    }
 }
 
 class dom4_piscineCmd extends cmd {
@@ -651,35 +762,52 @@ class dom4_piscineCmd extends cmd {
       if ($this->getLogicalId() == 'modef_arret') {
         $eqLogic->set_mode_filtration(FILT_ARRET);
       }
-      else if ($this->getLogicalId() == 'modef_manuel') {
+      elseif ($this->getLogicalId() == 'modef_manuel') {
         $eqLogic->set_mode_filtration(FILT_MANUEL);
       }
-      else if ($this->getLogicalId() == 'modef_auto') {
+      elseif ($this->getLogicalId() == 'modef_auto') {
         $eqLogic->set_mode_filtration(FILT_AUTO);
       }
-      else if ($this->getLogicalId() == 'modef_hiver') {
+      elseif ($this->getLogicalId() == 'modef_hiver') {
         $eqLogic->set_mode_filtration(FILT_HIVER);
       }
+      else if ($this->getLogicalId() == 'modef_force') {
+        $eqLogic->set_mode_filtration(FILT_FORCE);
+      }
+      else if ($this->getLogicalId() == 'modef_sforce') {
+        $eqLogic->set_mode_filtration(FILT_SFORCE);
+      }
       // Set mode pompe a chaleur
-      else if ($this->getLogicalId() == 'modep_arret') {
+      elseif ($this->getLogicalId() == 'modep_arret') {
         $eqLogic->set_mode_pac(PAC_ARRET);
       }
-      else if ($this->getLogicalId() == 'modep_tfilt') {
+      elseif ($this->getLogicalId() == 'modep_tfilt') {
         $eqLogic->set_mode_pac(PAC_TFILT);
       }
-      else if ($this->getLogicalId() == 'modep_teten') {
+      elseif ($this->getLogicalId() == 'modep_teten') {
         $eqLogic->set_mode_pac(PAC_TETEN);
       }
-      else if ($this->getLogicalId() == 'modep_manuel') {
+      elseif ($this->getLogicalId() == 'modep_manuel') {
         $eqLogic->set_mode_pac(PAC_MANUEL);
       }
-      else if ($this->getLogicalId() == 'pac_tconsigne') {
+      elseif ($this->getLogicalId() == 'pac_tconsigne') {
         $new_tempe = $_options['slider'];
         $eqLogic = $this->getEqLogic();
         $cmd_ass = $eqLogic->getCmd(null, 'tconsigne_val');
         if (is_object($cmd_ass)) {
           $cmd_ass->event($new_tempe);
         }
+      }
+      elseif ($this->getLogicalId() == 'ecl_bassin_on') {
+        $eqLogic->set_eclairage(1);
+      }
+      elseif ($this->getLogicalId() == 'ecl_bassin_off') {
+        $eqLogic->set_eclairage(0);
+      }
+      elseif ( $this->getLogicalId() == 'refresh') {
+        log::add('dom4_piscine','info',"Refresh data");
+        $eqLogic = $this->getEqLogic();
+        dom4_piscine::periodic_task($eqLogic);
       }
         
     }

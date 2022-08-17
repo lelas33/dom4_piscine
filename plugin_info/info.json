@@ -8,6 +8,7 @@
 	"author" : "Lelas33",
 	"require" : "4.0",
 	"category" : "wellness",
+	"display" : "panel",
 	"hasDependency" : false,
 	"hasOwnDeamon" : false,
 	"maxDependancyInstallTime" : 0,

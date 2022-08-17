@@ -147,6 +147,17 @@ $eqLogics = eqLogic::byType($plugin->getId());
                 </div>
 							</div>
 							<div class="form-group">
+								<label class="col-sm-4 control-label">{{Statut Pompe de filtration}}
+									<sup><i class="fas fa-question-circle tooltips" title="{{Lien vers l'info 'Statut' de la pompe de filtration}}"></i></sup>
+								</label>
+                <div class="input-group">
+                  <input type="text" class="eqLogicAttr form-control roundedLeft" data-l1key="configuration" data-l2key="Filtration_sts" placeholder=""/>
+                  <span class="input-group-btn">
+                    <a class="btn btn-default listCmdInfoBinary roundedRight"><i class="fas fa-list-alt"></i></a>
+                  </span>
+                </div>
+							</div>
+							<div class="form-group">
 								<label class="col-sm-4 control-label">{{Marche traitement SEL}}
 									<sup><i class="fas fa-question-circle tooltips" title="{{Lien vers la commande 'ON' du traitement SEL}}"></i></sup>
 								</label>
@@ -165,6 +176,17 @@ $eqLogics = eqLogic::byType($plugin->getId());
                   <input type="text" class="eqLogicAttr form-control roundedLeft" data-l1key="configuration" data-l2key="SEL_off" placeholder=""/>
                   <span class="input-group-btn">
                     <a class="btn btn-default listCmdActionOther roundedRight"><i class="fas fa-list-alt"></i></a>
+                  </span>
+                </div>
+							</div>
+							<div class="form-group">
+								<label class="col-sm-4 control-label">{{Statut traitement SEL}}
+									<sup><i class="fas fa-question-circle tooltips" title="{{Lien vers l'info 'Statut' du traitement SEL}}"></i></sup>
+								</label>
+                <div class="input-group">
+                  <input type="text" class="eqLogicAttr form-control roundedLeft" data-l1key="configuration" data-l2key="SEL_sts" placeholder=""/>
+                  <span class="input-group-btn">
+                    <a class="btn btn-default listCmdInfoBinary roundedRight"><i class="fas fa-list-alt"></i></a>
                   </span>
                 </div>
 							</div>
@@ -191,16 +213,112 @@ $eqLogics = eqLogic::byType($plugin->getId());
                 </div>
 							</div>
 							<div class="form-group">
+								<label class="col-sm-4 control-label">{{Statut Pompe à chaleur}}
+									<sup><i class="fas fa-question-circle tooltips" title="{{Lien vers l'info 'Statut' de la pompe à chaleur}}"></i></sup>
+								</label>
+                <div class="input-group">
+                  <input type="text" class="eqLogicAttr form-control roundedLeft" data-l1key="configuration" data-l2key="PAC_sts" placeholder=""/>
+                  <span class="input-group-btn">
+                    <a class="btn btn-default listCmdInfoBinary roundedRight"><i class="fas fa-list-alt"></i></a>
+                  </span>
+                </div>
+							</div>
+							<div class="form-group">
+								<label class="col-sm-4 control-label">{{Activation éclairage bassin}}
+									<sup><i class="fas fa-question-circle tooltips" title="{{Lien vers la commande 'ON' de l'éclairage bassin}}"></i></sup>
+								</label>
+                <div class="input-group">
+                  <input type="text" class="eqLogicAttr form-control roundedLeft" data-l1key="configuration" data-l2key="ECL_on" placeholder=""/>
+                  <span class="input-group-btn">
+                    <a class="btn btn-default listCmdActionOther roundedRight"><i class="fas fa-list-alt"></i></a>
+                  </span>
+                </div>
+							</div>
+							<div class="form-group">
+								<label class="col-sm-4 control-label">{{Arrêt éclairage bassin}}
+									<sup><i class="fas fa-question-circle tooltips" title="{{Lien vers la commande 'OFF' de l'éclairage bassin}}"></i></sup>
+								</label>
+                <div class="input-group">
+                  <input type="text" class="eqLogicAttr form-control roundedLeft" data-l1key="configuration" data-l2key="ECL_off" placeholder=""/>
+                  <span class="input-group-btn">
+                    <a class="btn btn-default listCmdActionOther roundedRight"><i class="fas fa-list-alt"></i></a>
+                  </span>
+                </div>
+							</div>
+							<div class="form-group">
+								<label class="col-sm-4 control-label">{{Statut éclairage bassin}}
+									<sup><i class="fas fa-question-circle tooltips" title="{{Lien vers l'info 'Statut' de l'éclairage bassin}}"></i></sup>
+								</label>
+                <div class="input-group">
+                  <input type="text" class="eqLogicAttr form-control roundedLeft" data-l1key="configuration" data-l2key="ECL_sts" placeholder=""/>
+                  <span class="input-group-btn">
+                    <a class="btn btn-default listCmdInfoBinary roundedRight"><i class="fas fa-list-alt"></i></a>
+                  </span>
+                </div>
+							</div>
+							<div class="form-group">
 								<label class="col-sm-4 control-label">{{Température de l'eau}}
 									<sup><i class="fas fa-question-circle tooltips" title="{{Lien vers l'info. Température de l'eau de la piscine}}"></i></sup>
 								</label>
                 <div class="input-group">
-                  <input type="text" class="eqLogicAttr form-control roundedLeft" data-l1key="configuration" data-l2key="EAU_temperature" placeholder=""/>
+                  <input type="text" class="eqLogicAttr form-control roundedLeft" data-l1key="configuration" data-l2key="water_tempe" placeholder=""/>
                   <span class="input-group-btn">
                     <a class="btn btn-default listCmdInfoNumeric roundedRight"><i class="fas fa-list-alt"></i></a>
                   </span>
                 </div>
 							</div>
+							<div class="form-group">
+								<label class="col-sm-4 control-label">{{Température de l'air}}
+									<sup><i class="fas fa-question-circle tooltips" title="{{Lien vers l'info. Température de l'air}}"></i></sup>
+								</label>
+                <div class="input-group">
+                  <input type="text" class="eqLogicAttr form-control roundedLeft" data-l1key="configuration" data-l2key="air_tempe" placeholder=""/>
+                  <span class="input-group-btn">
+                    <a class="btn btn-default listCmdInfoNumeric roundedRight"><i class="fas fa-list-alt"></i></a>
+                  </span>
+                </div>
+							</div>
+							<legend><i class="fas fa-cogs"></i> {{Autres Informations}}</legend>
+              <div class="form-group">
+								<label class="col-sm-4 control-label">{{Montant du kWh}}
+									<sup><i class="fas fa-question-circle tooltips" title="{{Montant du kWh en €}}"></i></sup>
+								</label>
+                <div class="col-lg-3">
+                    <input type="text" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="cost_kwh" title="{{0.1630 € TTC (9-24kVA Option base EDF 2021)}}"/>
+                </div>
+              </div>
+              <div class="form-group">
+								<label class="col-sm-4 control-label">{{Puissance pompe filtration}}
+									<sup><i class="fas fa-question-circle tooltips" title="{{Puissance en kW de la pompe de filtration}}"></i></sup>
+								</label>
+                <div class="col-lg-3">
+                    <input type="text" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="power_pmp"/>
+                </div>
+              </div>
+              <div class="form-group">
+								<label class="col-sm-4 control-label">{{Puissance traitement SEL}}
+									<sup><i class="fas fa-question-circle tooltips" title="{{Puissance en kW du traitement SEL}}"></i></sup>
+								</label>
+                <div class="col-lg-3">
+                    <input type="text" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="power_sel"/>
+                </div>
+              </div>
+              <div class="form-group">
+								<label class="col-sm-4 control-label">{{Puissance pompe à chaleur}}
+									<sup><i class="fas fa-question-circle tooltips" title="{{Puissance en kW de la pompe à chaleur}}"></i></sup>
+								</label>
+                <div class="col-lg-3">
+                    <input type="text" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="power_pac"/>
+                </div>
+              </div>
+              <div class="form-group">
+								<label class="col-sm-4 control-label">{{Puissance éclairage}}
+									<sup><i class="fas fa-question-circle tooltips" title="{{Puissance en kW de l'éclairage}}"></i></sup>
+								</label>
+                <div class="col-lg-3">
+                    <input type="text" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="power_ecl"/>
+                </div>
+              </div>
 						</div>
 
 						<!-- Partie droite de l'onglet "Équipement" -->
